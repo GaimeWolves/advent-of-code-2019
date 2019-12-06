@@ -20,7 +20,7 @@ IntCode assembly is very similar to intel assembly. Instruction are read line by
 Everything after a semicolon is a comment and is ignored. A parameters mode is denoted by a $ sign before the value. The $ sign
 sets the parameter to immediate mode (1).
 
-##### Example (Fibonacci generator by u/mkeeter, translated into IntCode assembly):
+### Example (Fibonacci generator by u/mkeeter, translated into IntCode assembly):
 
 The IntCode assembly:
 ```
@@ -39,7 +39,7 @@ Compiles into:
 3,3,1106,1,24,104,1,1101,1,0,6,1001,8,0,9,1001,6,0,8,1001,3,-1,3,1105,99,2
 ```
 
-##### Instruction set
+### Instruction set
 
 | instruction | example            | explanation                                                                                  | mode info                       |
 |-------------|--------------------|----------------------------------------------------------------------------------------------|---------------------------------|
