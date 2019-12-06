@@ -5,6 +5,15 @@ into IntCode. It's probably pretty buggy right now because i haven't cleaned up 
 code yet. Just run in in the command line and pass the input and output file as
 command line arguments.
 
+### Compiling
+
+You'll have to compile it yourself, for that you can do whatever you want or use my CMake file:
+```bash
+$ cmake -H. -Bbuild
+$ cmake --build build
+$ ./bin/icc.elf <infile> <outfile>
+```
+
 ### IntCode assembly
 
 IntCode assembly is very similar to intel assembly. Instruction are read line by line and can contain comments.
@@ -32,14 +41,14 @@ Compiles into:
 
 ##### Instruction set
 
-| instruction | example            | explanation                                                                            | mode info                       |
-|-------------|--------------------|----------------------------------------------------------------------------------------|---------------------------------|
-| add         | add 5, $-0x5d, 9   | adds two numbers                                                                       | param 3 expects address mode(0) |
-| mul         | mul 5, $0b1101, 10 | multiplies two numbers                                                                 | param 3 expects address mode(0) |
-| in          | in 10              | stores input at address                                                                | param 3 expects address mode(0) |
-| out         | out 10             | writes value at address to stdout                                                      | param 3 expects address mode(0) |
-| jnz         | jnz 5, 0x10        | jumps if first param is not 0                                                          |                                 |
-| jz          | jz $0, 0           | jumps if first param is 0                                                              |                                 |
-| slt         | slt $5, 10, 15     | sets value at param 3 to 1 if param 1 is less than param 2 otherwise it is set to 0    | param 3 expects address mode(0) |
-| se          | se $5, 10, 15      | sets value at param 3 to 1 if param 1 is equal to param 2 otherwise it is set to 0     | param 3 expects address mode(0) |
-| hlt         | hlt                | halts execution                                                                        |                                 |
+| instruction | example            | explanation                                                                                  | mode info                       |
+|-------------|--------------------|----------------------------------------------------------------------------------------------|---------------------------------|
+| add         | add 5, $-0x5d, 9   | adds two numbers                                                                             | param 3 expects address mode(0) |
+| mul         | mul 5, $0xABCD, 10 | multiplies two numbers                                                                       | param 3 expects address mode(0) |
+| in          | in 10              | stores input at address                                                                      | param 3 expects address mode(0) |
+| out         | out 10             | writes value at address to stdout                                                            | param 3 expects address mode(0) |
+| jnz         | jnz 5, 0x10        | jumps if first param is not 0                                                                |                                 |
+| jz          | jz $0, 0           | jumps if first param is 0                                                                    |                                 |
+| slt         | slt $5, 10, 15     | sets value at param 3 to 1 if param 1<br>is less than param 2 otherwise<br>it is set to 0    | param 3 expects address mode(0) |
+| se          | se $5, 10, 15      | sets value at param 3 to 1 if param 1<br>is equal to param 2 otherwise<br>it is set to 0     | param 3 expects address mode(0) |
+| hlt         | hlt                | halts execution                                                                              |                                 |

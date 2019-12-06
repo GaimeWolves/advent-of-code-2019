@@ -49,10 +49,8 @@ std::string compileFile(std::ifstream *file)
 
                         if (Instructions.find(instr) == Instructions.end())
                         {
-                            std::cerr << "Invalid instruction in line " << lineNr << " at " << (i + 1) << ": " << instr << std::endl;
+                            std::cerr << "Invalid instruction in line " << lineNr << " at " << i << ": " << instr << std::endl;
                             file->close();
-                            delete file;
-                            file = nullptr;
                             exit(-1);
                         }
 
@@ -79,10 +77,8 @@ std::string compileFile(std::ifstream *file)
 
                     if (param.size() == 0)
                     {
-                        std::cerr << "Stray comma in line " << lineNr << " at " << (i + 1) << std::endl;
+                        std::cerr << "Stray comma in line " << lineNr << " at " << i << std::endl;
                         file->close();
-                        delete file;
-                        file = nullptr;
                         exit(-1);
                     }
                 }
@@ -104,19 +100,15 @@ std::string compileFile(std::ifstream *file)
                         parameter = std::stoi(param, &s, 0);
                         if (s != param.size())
                         {
-                            std::cerr << "Invalid number in line " << lineNr << " at " << (i + 1) << std::endl;
+                            std::cerr << "Invalid number in line " << lineNr << " at " << i << std::endl;
                             file->close();
-                            delete file;
-                            file = nullptr;
                             exit(-1);
                         }
                     }
                     catch(...)
                     {
-                        std::cerr << "Invalid number in line " << lineNr << " at " << (i + 1) << std::endl;
+                        std::cerr << "Invalid number in line " << lineNr << " at " << i << std::endl;
                         file->close();
-                        delete file;
-                        file = nullptr;
                         exit(-1);
                     }
 
@@ -139,8 +131,6 @@ std::string compileFile(std::ifstream *file)
         {
             std::cerr << "Invalid parameter count in line " << lineNr << std::endl;
             file->close();
-            delete file;
-            file = nullptr;
             exit(-1);
         }
 
