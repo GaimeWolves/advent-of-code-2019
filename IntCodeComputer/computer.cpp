@@ -79,7 +79,13 @@ void reset()
 
 int main(int argc, char** argv)
 {
-	std::ifstream file("in.txt"); 
+	if (argc != 2)
+	{
+		std::cerr << "Usage: " << argv[0] << " <file>" << std::endl;
+		exit(-1);
+	}
+
+	std::ifstream file(argv[1]);
 
 	std::string line;
 	while (std::getline(file, line))

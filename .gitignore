@@ -2,3 +2,11 @@ Vorlage
 **/.vscode
 **/*.elf
 **/*.txt
+
+**/build
+**/bin
+
+**/*.ic
+**/*.icasm
+
+!**/CMakeLists.txt
