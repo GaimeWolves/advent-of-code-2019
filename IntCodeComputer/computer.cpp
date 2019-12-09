@@ -2,61 +2,43 @@
 #include <fstream>
 #include <sstream>
 
-#include <vector>
-#include <map>
-
 #include "computer.hpp"
 
-std::vector<int> programMemory = std::vector<int>();
-std::vector<int> programRam = std::vector<int>();
-int rip = 0;
-
-//Indexing with the OpCode returnes a OpCode-Struct with the size and the instruction code.
-std::map<int, OpCode> opCodes = {
-	{1, {4, [](Instruction i) { i.setValue(3, i.getValue(1) + i.getValue(2)); }}},
-	{2, {4, [](Instruction i) { i.setValue(3, i.getValue(1) * i.getValue(2)); }}},
-	{3, {2, [](Instruction i) { std::string num; std::cin >> num; i.setValue(1, std::stoi(num)); }}},
-	{4, {2, [](Instruction i) { std::cout << i.getValue(1) << std::endl; }}},
-	{5, {3, [](Instruction i) { if (i.getValue(1) != 0) rip = i.getValue(2) - 3; }}},
-	{6, {3, [](Instruction i) { if (i.getValue(1) == 0) rip = i.getValue(2) - 3; }}},
-	{7, {4, [](Instruction i) { i.setValue(3, i.getValue(1) < i.getValue(2) ? 1 : 0); }}},
-	{8, {4, [](Instruction i) { i.setValue(3, i.getValue(1) == i.getValue(2) ? 1 : 0); }}},
-	{99, {1, [](Instruction i) { std::cout << "HALT" << std::endl; }}}
-};
-
-Instruction::Instruction(int value)
+IntCodePC::Instruction::Instruction(IntCodePC* pc, int value)
 {
 	std::string str = std::to_string(value);
 	opCode = std::stoi(str.substr(str.size() > 2 ? str.size() - 2 : 0));
 
-	modes = std::vector<int>(opCodes[opCode].size - 1, 0);
+	modes = std::vector<int>(pc->opCodes[opCode].size - 1, 0);
 
 	for (int i = str.size() - 3, mI = 0; i >= 0; i--, mI++)
 		modes[mI] = str[i] == '0' ? 0 : 1;
+
+	this->pc = pc;
 }
 
-int Instruction::getValue(int parameter)
+int IntCodePC::Instruction::getValue(int parameter)
 {
 	if (modes[parameter - 1] == 0)
-		return programMemory[programMemory[rip + parameter]];
+		return pc->memory[pc->memory[pc->rip + parameter]];
 	else
-		return programMemory[rip + parameter];
+		return pc->memory[pc->rip + parameter];
 }
 
-void Instruction::setValue(int parameter, int value)
+void IntCodePC::Instruction::setValue(int parameter, int value)
 {
-	programMemory[programMemory[rip + parameter]] = value;
+	pc->memory[pc->memory[pc->rip + parameter]] = value;
 }
 
-void Instruction::execute()
+void IntCodePC::Instruction::execute()
 {
-	opCodes[opCode].op(*this);
-	rip += opCodes[opCode].size;
+	pc->opCodes[opCode].op(*this);
+	pc->rip += pc->opCodes[opCode].size;
 }
 
-bool step()
+bool IntCodePC::step()
 {
-	Instruction instruction = Instruction(programMemory[rip]);
+	Instruction instruction = Instruction(this, memory[rip]);
 
 	instruction.execute();
 
@@ -66,42 +48,67 @@ bool step()
 	return true;
 }
 
-void run()
+void IntCodePC::run()
 {
-	while(step());
+	isRunning = true;
+
+	thread = std::thread([this]() { while(step()); isRunning = false; });
 }
 
-void reset()
+void IntCodePC::waitForExit()
+{
+	thread.join();
+}
+
+void IntCodePC::reload(std::vector<int> ram)
+{
+	memory = ram;
+}
+
+void IntCodePC::reset()
 {
 	rip = 0;
-	programMemory = programRam;
 }
 
-int main(int argc, char** argv)
+void IntCodePC::setOutput(int out)
 {
-	if (argc != 2)
-	{
-		std::cerr << "Usage: " << argv[0] << " <file>" << std::endl;
-		exit(-1);
-	}
+	this->output = out;
+	waitOutput = true;
+}
 
-	std::ifstream file(argv[1]);
+int IntCodePC::getInput()
+{
+	waitInput = true;
 
-	std::string line;
-	while (std::getline(file, line))
-	{
-		std::string intCodeLine;
-		std::istringstream iss(line);
+	while(waitInput);
+	return input;
+}
 
-		while(std::getline(iss, intCodeLine, ','))
-		{
-			int intCode = std::stoi(intCodeLine);
-			programRam.push_back(intCode);
-		}
-	}
+int IntCodePC::out()
+{
+	while(!waitOutput);
+	waitOutput = false;
+	return output;
+}
 
-	reset();
-	run();
+void IntCodePC::in(int in)
+{
+	while(!waitInput);
+	this->input = in;
+	waitInput = false;
+}
 
-	return 0;
+bool IntCodePC::hasOutput()
+{
+	return waitOutput;
+}
+
+bool IntCodePC::awaitsInput()
+{
+	return waitInput;
+}
+
+bool IntCodePC::running()
+{
+	return isRunning;
 }
