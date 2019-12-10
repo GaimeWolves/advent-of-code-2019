@@ -17,8 +17,8 @@ $ ./bin/icc.elf <infile> <outfile>
 ### IntCode assembly
 
 IntCode assembly is very similar to intel assembly. Instruction are read line by line and can contain comments.
-Everything after a semicolon is a comment and is ignored. A parameters mode is denoted by a $ sign before the value. The $ sign
-sets the parameter to immediate mode (1).
+Everything after a semicolon is a comment and is ignored. A parameters mode is denoted by a $ sign or a % sign before the value. The $ sign
+sets the parameter to immediate mode (1). The % sign sets the parameter to relative mode (2).
 
 ### Example (Fibonacci generator by u/mkeeter, translated into IntCode assembly):
 
@@ -41,14 +41,15 @@ Compiles into:
 
 ### Instruction set
 
-| instruction | example            | explanation                                                                                  | mode info                       |
-|-------------|--------------------|----------------------------------------------------------------------------------------------|---------------------------------|
-| add         | add 5, $-0x5d, 9   | adds two numbers                                                                             | param 3 expects address mode(0) |
-| mul         | mul 5, $0xABCD, 10 | multiplies two numbers                                                                       | param 3 expects address mode(0) |
-| in          | in 10              | stores input at address                                                                      | param 3 expects address mode(0) |
-| out         | out 10             | writes value at address to stdout                                                            | param 3 expects address mode(0) |
-| jnz         | jnz 5, 0x10        | jumps if first param is not 0                                                                |                                 |
-| jz          | jz $0, 0           | jumps if first param is 0                                                                    |                                 |
-| slt         | slt $5, 10, 15     | sets value at param 3 to 1 if param 1<br>is less than param 2 otherwise<br>it is set to 0    | param 3 expects address mode(0) |
-| se          | se $5, 10, 15      | sets value at param 3 to 1 if param 1<br>is equal to param 2 otherwise<br>it is set to 0     | param 3 expects address mode(0) |
-| hlt         | hlt                | halts execution                                                                              |                                 |
+| instruction | example            | explanation                                                                               | mode info                   |
+|-------------|--------------------|-------------------------------------------------------------------------------------------|-----------------------------|
+| add         | add 5, $-0x5d, 9   | adds two numbers                                                                          | param 3 expects mode 0 or 2 |
+| mul         | mul 5, $0xABCD, 10 | multiplies two numbers                                                                    | param 3 expects mode 0 or 2 |
+| in          | in 10              | stores input at address                                                                   | param 3 expects mode 0 or 2 |
+| out         | out 10             | writes value at address to stdout                                                         | param 3 expects mode 0 or 2 |
+| jnz         | jnz 5, 0x10        | jumps if first param is not 0                                                             |                             |
+| jz          | jz $0, 0           | jumps if first param is 0                                                                 |                             |
+| slt         | slt $5, 10, 15     | sets value at param 3 to 1 if param 1<br>is less than param 2 otherwise<br>it is set to 0 | param 3 expects mode 0 or 2 |
+| se          | se $5, 10, 15      | sets value at param 3 to 1 if param 1<br>is equal to param 2 otherwise<br>it is set to 0  | param 3 expects mode 0 or 2 |
+| hlt         | hlt                | halts execution                                                                           |                             |
+| crb.........| crb %-2            | changes the relative base.................................................................|.............................|
