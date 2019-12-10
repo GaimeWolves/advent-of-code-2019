@@ -25,6 +25,8 @@ add_executable(icc.elf
 	src/file.cpp
 	src/util.hpp
 	src/util.cpp
+	src/err.hpp
+	src/err.cpp
 )
 
 message("Added sources")

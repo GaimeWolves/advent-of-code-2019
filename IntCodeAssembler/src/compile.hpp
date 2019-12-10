@@ -7,20 +7,20 @@
 
 struct Parameter
 {
-    int mode;
-    int value;
+    int64_t mode;
+    int64_t value;
 };
 
 struct Instruction
 {
-    int opcode;
+    int64_t opcode;
     std::vector<Parameter> params;
 
-    std::vector<int> toIntCode()
+    std::vector<int64_t> toIntCode()
     {
-        std::vector<int> ret = std::vector<int>(1);
-        int code = opcode;
-        int power = 100;
+        std::vector<int64_t> ret = std::vector<int64_t>(1);
+        int64_t code = opcode;
+        int64_t power = 100;
         for (auto&& param : params)
         {
             code += power * param.mode;

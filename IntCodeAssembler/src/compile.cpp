@@ -1,9 +1,11 @@
 #include "compile.hpp"
 #include <sstream>
+#include <cctype>
 
 #include "util.hpp"
+#include "err.hpp"
 
-std::map<std::string, std::pair<int, int>> Instructions = {
+static std::map<std::string, std::pair<int, int>> Instructions = {
     {"add", {1, 3}},
     {"mul", {2, 3}},
     {"in", {3, 1}},
@@ -12,129 +14,129 @@ std::map<std::string, std::pair<int, int>> Instructions = {
     {"jz", {6, 2}},
     {"slt", {7, 3}},
     {"se", {8, 3}},
-    {"hlt", {99, 0}},
+    {"crb", {9, 1}},
+    {"hlt", {99, 0}}
 };
 
-std::string compileFile(std::ifstream *file)
+static Error parseParameter(std::vector<Parameter>& params, std::string line)
 {
-    int memSize = 0;
-    std::vector<Instruction> code = std::vector<Instruction>();
-    std::vector<int> intCode = std::vector<int>();
-
-    std::string line;
-    int lineNr = 0;
-    while(std::getline(*file, line))
+    int64_t mode;
+    switch (line[0])
     {
-        lineNr++;
-        std::string instr = "";
-        std::vector<Parameter> params = std::vector<Parameter>();
+    case '$':
+        mode = 1;
+        break;
+    case '%':
+        mode = 2;
+        break;
+    default:
+        if (!std::isdigit(line[0]))
+            return { SYNTAX_ERROR_INVALID_PARAMETER_PREFIX, "", 0, 0, line.size() };
+        mode = 0;
+        break;
+    }
 
-        bool comment = false;
+    if (!std::isdigit(line[0]))
+        line = line.substr(1);
 
-        int start = -1;
-        for (int i = 0; i <= line.size(); i++)
+    int64_t parameter;
+
+    try
+    {
+        std::size_t s;
+        parameter = std::stoll(line, &s, 0);
+
+        if (s != line.size())
+            return { SYNTAX_ERROR_INVALID_NUMBER, "", 0, 0, line.size() };
+    }
+    catch(...)
+    {
+        return { SYNTAX_ERROR_INVALID_NUMBER, "", 0, 0, line.size() };
+    }
+
+    params.push_back({ mode, parameter });
+
+    return { NO_ERROR, "", 0, 0, 0 };
+}
+
+static Error parseLine(std::vector<Instruction>& code, std::string line)
+{
+    std::string part;
+    std::istringstream iss(line);
+
+    std::string instr = "";
+
+    while(std::getline(iss, part, ' '))
+    {
+        part = trim(part);
+        if (part == "")
+            return { SYNTAX_ERROR_STRAY_COMMA, line, 0, line.find(part), part.size() };
+
+        if (part[0] == ';')
+            return { NO_ERROR, "", 0, 0, 0 };
+
+        if (Instructions.find(part) != Instructions.end())
         {
-            if (line[i] == ';') //Comment
-                comment = true;
+            instr = part;
+            break;
+        }
+        else
+            return { SYNTAX_ERROR_INVALID_INSTRUCTION, line, 0, line.find(part), part.size() };
+    }
 
-            if (instr == "")
+    if (instr != "")
+    {
+        std::vector<Parameter> params{};
+
+        while (std::getline(iss, part, ','))
+        {
+            part = trim(part);
+            if (part == "")
+                return { SYNTAX_ERROR_STRAY_COMMA, line, 0, 0, line.size() };
+
+            if (part[0] == ';')
+                break;
+
+            auto c = part.find(';');
+            part = part.substr(0, c);
+
+            Error err = parseParameter(params, part);
+            if (err.code)
             {
-                if (line[i] != ' ' && line[i] != '\t' && start == -1) //Normal char, not space or tab.
-                    start = i;
-                else if (start != -1 && instr == "")
-                {
-                    if (line[i] == ' ' || line[i] == '\t' || line[i] == '\000' || comment)
-                    {
-                        instr = line.substr(start, i - start);
-
-                        if (Instructions.find(instr) == Instructions.end())
-                        {
-                            std::cerr << "Invalid instruction in line " << lineNr << " at " << i << ": " << instr << std::endl;
-                            file->close();
-                            exit(-1);
-                        }
-
-                        start = i;
-                    }
-                }
-            }
-            else
-            {
-                std::string param = "";
-
-                if (line[i] == '\000' || comment)
-                {
-                    param = line.substr(start, i - start);
-                    param = trim(param);
-                    if (param.size() == 0)
-                        break;
-                }
-                if (line[i] == ',')
-                {
-                    param = line.substr(start, i - start);
-                    start = i + 1;
-                    param = trim(param);
-
-                    if (param.size() == 0)
-                    {
-                        std::cerr << "Stray comma in line " << lineNr << " at " << i << std::endl;
-                        file->close();
-                        exit(-1);
-                    }
-                }
-
-                if (param != "")
-                {
-                    int mode = 0;
-                    if (param[0] == '$')
-                    {
-                        mode = 1;
-                        param = param.substr(1);
-                    }
-
-                    int parameter;
-
-                    try
-                    {
-                        std::size_t s;
-                        parameter = std::stoi(param, &s, 0);
-                        if (s != param.size())
-                        {
-                            std::cerr << "Invalid number in line " << lineNr << " at " << i << std::endl;
-                            file->close();
-                            exit(-1);
-                        }
-                    }
-                    catch(...)
-                    {
-                        std::cerr << "Invalid number in line " << lineNr << " at " << i << std::endl;
-                        file->close();
-                        exit(-1);
-                    }
-
-                    if (mode == 0 && memSize < parameter)
-                        memSize = parameter;
-
-                    params.push_back({mode, parameter});
-                }
+                err.line = line;
+                err.index = line.find(part);
+                return err;
             }
 
-            if (comment)
+            if (c != std::string::npos)
                 break;
         }
 
-        if (instr == "")
-            continue;
-
         auto opCodeInfo = Instructions[instr];
         if (opCodeInfo.second != params.size())
-        {
-            std::cerr << "Invalid parameter count in line " << lineNr << std::endl;
-            file->close();
-            exit(-1);
-        }
+            return { SYNTAX_ERROR_WRONG_PARAMETER_COUNT, line, 0, 0, line.size() };
+        code.push_back({ opCodeInfo.first, params });
+    }
 
-        code.push_back({opCodeInfo.first, params});
+    return { NO_ERROR, "", 0, 0, 0 };
+}
+
+std::string compileFile(std::ifstream *file)
+{
+    std::vector<Instruction> code = std::vector<Instruction>();
+    std::vector<int64_t> intCode = std::vector<int64_t>();
+
+    std::string line;
+    int64_t lineNr = 0;
+    while(std::getline(*file, line))
+    {
+        lineNr++;
+        Error err = parseLine(code, line);
+        if (err.code)
+        {
+            err.lineNr = lineNr;
+            throwError(err);
+        }
     }
 
     for (auto&& instr : code)
@@ -142,9 +144,6 @@ std::string compileFile(std::ifstream *file)
         auto vec = instr.toIntCode();
         intCode.insert(std::end(intCode), std::begin(vec), std::end(vec));
     }
-
-    if (intCode.size() < memSize)
-        intCode.resize(memSize);
 
     std::string out = "";
 
