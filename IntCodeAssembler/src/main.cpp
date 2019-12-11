@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "compile.hpp"
+#include "file.hpp"
 
 int main(int argc, char** argv)
 {
@@ -11,13 +12,11 @@ int main(int argc, char** argv)
 		exit(-1);
 	}
 
-	std::ifstream file = std::ifstream(argv[1]);
+	std::ifstream file = tryOpenFile(argv[1]);
 	auto out = compileFile(&file);
 	file.close();
 
-	std::ofstream outFile = std::ofstream(argv[2]);
-	outFile << out;
-	outFile.close();
+	tryWriteFile(argv[2], out);
 
 	return 0;
 }

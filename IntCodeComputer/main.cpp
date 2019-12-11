@@ -4,7 +4,7 @@
 
 #include "computer.hpp"
 
-std::vector<int> ram = std::vector<int>();
+std::vector<int64_t> ram = std::vector<int64_t>();
 
 IntCodePC pc;
 
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 
 		while(std::getline(iss, intCodeLine, ','))
 		{
-			int intCode = std::stoi(intCodeLine);
+			int64_t intCode = std::stoll(intCodeLine);
 			ram.push_back(intCode);
 		}
 	}
@@ -34,8 +34,19 @@ int main(int argc, char** argv)
 	pc.reload(ram);
 	pc.reset();
 	pc.run();
-	pc.in(10);
-	std::cout << pc.out() << std::endl;
+
+	while (pc.running())
+	{
+		if (pc.awaitsInput())
+		{
+			std::string num;
+			std::cin >> num;
+			pc.in(std::stoll(num));
+		}
+		if (pc.hasOutput())
+			std::cout << pc.out() << std::endl;
+	}
+	
 	pc.waitForExit();
 
 	return 0;

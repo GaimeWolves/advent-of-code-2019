@@ -16,9 +16,7 @@ message("Set variables")
 
 add_executable(icc.elf
 	src/main.cpp
-
-	src/args.hpp
-	src/args.cpp
+	
 	src/compile.hpp
 	src/compile.cpp
 	src/file.hpp
