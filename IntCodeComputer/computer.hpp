@@ -4,6 +4,8 @@
 #include <thread>
 #include <map>
 #include <atomic>
+#include <mutex>
+#include <chrono>
 
 class IntCodePC
 {
@@ -43,8 +45,8 @@ public:
 	bool running();
 
 private:
-	int64_t output;
-	int64_t input;
+	std::atomic<int64_t> output;
+	std::atomic<int64_t> input;
 
 	std::map<int64_t, OpCode> opCodes = {
 		{ 1, {4, [this](Instruction& i) { i.setValue(3, i.getValue(1) + i.getValue(2)); }}},
@@ -64,6 +66,7 @@ private:
 	std::vector<int64_t> memory;
 
 	std::thread thread;
+	std::mutex mtx;
 
 	bool step();
 

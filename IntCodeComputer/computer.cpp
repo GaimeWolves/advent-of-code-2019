@@ -76,7 +76,11 @@ void IntCodePC::run()
 {
 	isRunning = true;
 
-	thread = std::thread([this]() { while(step()); isRunning = false; });
+	thread = std::thread([this]() {
+		while(step());
+		std::lock_guard<std::mutex> lck {mtx};
+		isRunning = false;
+	});
 }
 
 void IntCodePC::waitForExit()
@@ -97,6 +101,8 @@ void IntCodePC::reset()
 void IntCodePC::setOutput(int64_t out)
 {
 	while(waitOutput);
+
+	std::lock_guard<std::mutex> lck {mtx};
 	this->output = out;
 	waitOutput = true;
 }
@@ -104,14 +110,17 @@ void IntCodePC::setOutput(int64_t out)
 int64_t IntCodePC::getInput()
 {
 	waitInput = true;
-
 	while(waitInput);
+
+	std::lock_guard<std::mutex> lck {mtx};
 	return input;
 }
 
 int64_t IntCodePC::out()
 {
 	while(!waitOutput);
+
+	std::lock_guard<std::mutex> lck {mtx};
 	waitOutput = false;
 	return output;
 }
@@ -119,6 +128,8 @@ int64_t IntCodePC::out()
 void IntCodePC::in(int64_t in)
 {
 	while(!waitInput);
+
+	std::lock_guard<std::mutex> lck {mtx};
 	this->input = in;
 	waitInput = false;
 }
@@ -135,5 +146,6 @@ bool IntCodePC::awaitsInput()
 
 bool IntCodePC::running()
 {
+	std::lock_guard<std::mutex> lck {mtx};
 	return isRunning;
 }
