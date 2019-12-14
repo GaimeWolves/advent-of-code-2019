@@ -5,6 +5,8 @@
 #include "util.hpp"
 #include "err.hpp"
 
+std::map<std::string, int> labels;
+
 static std::map<std::string, std::pair<int, int>> Instructions = {
     {"add", {1, 3}},
     {"mul", {2, 3}},
@@ -17,6 +19,45 @@ static std::map<std::string, std::pair<int, int>> Instructions = {
     {"crb", {9, 1}},
     {"hlt", {99, 0}}
 };
+
+static void findLabels(std::ifstream* file)
+{
+    std::string line;
+    int64_t lineNr = 0;
+    int64_t currentAddress = 0;
+    while(std::getline(*file, line))
+    {
+        lineNr++;
+        std::string part;
+        std::istringstream iss(line);
+
+        bool instr = true;
+        while(std::getline(iss, part, ' '))
+        {
+            part = trim(part);
+
+            if (part[0] == ';')
+                break;
+
+            if (part[part.size() - 1] == ':') //Is a label
+            {
+                part = part.substr(0, part.size() - 1);
+                labels[part] = currentAddress;
+            }
+            else if (instr)
+            {
+                if (Instructions.find(part) == Instructions.end())
+                    throwError({ SYNTAX_ERROR_INVALID_INSTRUCTION, line, lineNr, line.find(part), part.size() });
+
+                auto opCodeInfo = Instructions[part];
+                currentAddress += opCodeInfo.second + 1;
+                continue;
+            }
+
+            instr = false;
+        }
+    }
+}
 
 static Error parseParameter(std::vector<Parameter>& params, std::string line)
 {
