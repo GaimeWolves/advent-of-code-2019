@@ -47,12 +47,21 @@ void traceBall()
 				return;
 
 			if (game[{x, y}] == 0)
+			{
+				attron(COLOR_PAIR(1));
 				mvaddch(x + 1, y, '.');
+				attroff(COLOR_PAIR(1));
+			}
 
 			if ((tmpGame[{x + dir.first, y + dir.second}] == 1 || tmpGame[{x + dir.first, y + dir.second}] == 2) && tmpGame[{x + dir.first, y}] == 0 && tmpGame[{x, y + dir.second}] == 0)
 			{
 				if (tmpGame[{x + dir.first, y + dir.second}] == 2)
+				{
+					attron(COLOR_PAIR(5));
+					mvaddch(x + 1 + dir.first, y + dir.second, '.');
+					attroff(COLOR_PAIR(5));
 					tmpGame[{x + dir.first, y + dir.second}] = 0;
+				}
 
 				dir.first = -dir.first;
 				dir.second = -dir.second;
@@ -61,10 +70,20 @@ void traceBall()
 			if ((tmpGame[{x + dir.first, y}] == 1 || tmpGame[{x + dir.first, y}] == 2) && (tmpGame[{x, y + dir.second}] == 1 || tmpGame[{x, y + dir.second}] == 2))
 			{
 				if (tmpGame[{x + dir.first, y}] == 2)
+				{
+					attron(COLOR_PAIR(5));
+					mvaddch(x + 1 + dir.first, y, '.');
+					attroff(COLOR_PAIR(5));
 					tmpGame[{x + dir.first, y}] = 0;
+				}
 
 				if (tmpGame[{x, y + dir.second}] == 2)
+				{
+					attron(COLOR_PAIR(5));
+					mvaddch(x + 1, y + dir.second, '.');
+					attroff(COLOR_PAIR(5));
 					tmpGame[{x, y + dir.second}] = 0;
+				}
 
 				dir.first = -dir.first;
 				dir.second = -dir.second;
@@ -75,7 +94,12 @@ void traceBall()
 			else if (tmpGame[{x + dir.first, y}] == 1 || tmpGame[{x + dir.first, y}] == 2)
 			{
 				if (tmpGame[{x + dir.first, y}] == 2)
+				{
+					attron(COLOR_PAIR(5));
+					mvaddch(x + 1 + dir.first, y, '.');
+					attroff(COLOR_PAIR(5));
 					tmpGame[{x + dir.first, y}] = 0;
+				}
 
 				dir.first = -dir.first;
 				x -= dir.first;
@@ -84,7 +108,12 @@ void traceBall()
 			else if (tmpGame[{x, y + dir.second}] == 1 || tmpGame[{x, y + dir.second}] == 2)
 			{
 				if (tmpGame[{x, y + dir.second}] == 2)
+				{
+					attron(COLOR_PAIR(5));
+					mvaddch(x + 1, y + dir.second, '.');
+					attroff(COLOR_PAIR(5));
 					tmpGame[{x, y + dir.second}] = 0;
+				}
 
 				dir.second = -dir.second;
 				x -= dir.first;
@@ -101,7 +130,21 @@ void drawGame()
 		if (tile.first.first == -1 || tile.first.second == -1)
 			mvprintw(0, 0, "SCORE: %d", tile.second);
 		else
+		{
+			if (tile.second == 4)
+				attron(COLOR_PAIR(2));
+			else if (tile.second == 2)
+				attron(COLOR_PAIR(4));
+			else if (tile.second == 1)
+				attron(COLOR_PAIR(3));
 			mvaddch(tile.first.first + 1, tile.first.second, tiles[tile.second]);
+			if (tile.second == 4)
+				attroff(COLOR_PAIR(2));
+			else if (tile.second == 2)
+				attroff(COLOR_PAIR(4));
+			else if (tile.second == 1)
+				attroff(COLOR_PAIR(3));
+		}
 	}
 	traceBall();
 	refresh();
@@ -137,6 +180,12 @@ int main(int argc, char** argv)
 	pc.run();
 
 	initscr();
+	start_color();
+	init_pair(1, COLOR_CYAN, COLOR_BLACK);
+	init_pair(2, COLOR_YELLOW, COLOR_YELLOW);
+	init_pair(3, COLOR_WHITE, COLOR_WHITE);
+	init_pair(4, COLOR_BLUE, COLOR_BLUE);
+	init_pair(5, COLOR_CYAN, COLOR_CYAN);
 	atexit(quit);
 	curs_set(0);
 	noecho();
@@ -176,7 +225,7 @@ int main(int argc, char** argv)
 		}
 
 		drawGame();
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	}
 
 	std::cout << std::count_if(game.begin(), game.end(), [](std::pair<std::pair<int, int>, int> tile) { return tile.second == 2; }) << std::endl;
