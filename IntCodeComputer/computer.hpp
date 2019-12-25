@@ -31,6 +31,38 @@ class IntCodePC
 
 	friend Instruction;
 public:
+	IntCodePC() {}
+
+	IntCodePC(const IntCodePC& pc)
+	{
+		output.store(pc.output, std::memory_order_relaxed);
+		input.store(pc.input, std::memory_order_relaxed);
+
+		rip = pc.rip;
+		rbase = pc.rbase;
+		memory = pc.memory;
+
+		isRunning = {false};
+		waitOutput = {false};
+		waitInput = {false};
+	}
+
+	IntCodePC operator=(const IntCodePC& pc)
+	{
+		IntCodePC nPc;
+		nPc.output.store(pc.output, std::memory_order_relaxed);
+		nPc.input.store(pc.input, std::memory_order_relaxed);
+
+		nPc.rip = pc.rip;
+		nPc.rbase = pc.rbase;
+		nPc.memory = pc.memory;
+
+		nPc.isRunning = {false};
+		nPc.waitOutput = {false};
+		nPc.waitInput = {false};
+		return nPc;
+	}
+
 	void run();
 	void reload(std::vector<int64_t> ram);
 	void reset();
@@ -63,7 +95,7 @@ private:
 
 	int64_t rip;
 	int64_t rbase;
-	std::vector<int64_t> memory;
+	std::map<uint64_t, int64_t> memory;
 
 	std::thread thread;
 	std::mutex mtx;

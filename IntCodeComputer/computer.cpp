@@ -20,17 +20,12 @@ IntCodePC::Instruction::Instruction(IntCodePC* pc, int64_t value)
 int64_t IntCodePC::Instruction::getValue(int64_t parameter)
 {
 	int64_t pointer = pc->rip + parameter;
-	if (pointer >= (int64_t)pc->memory.size())
-		pc->memory.resize(pointer + 1, 0);
 
 	int64_t value = pc->memory[pointer];
 
 	if (modes[parameter - 1] != 1)
 	{
 		int64_t address = (modes[parameter - 1] == 2 ? pc->rbase : 0) + value;
-
-		if (address >= (int64_t)pc->memory.size())
-			pc->memory.resize(address + 1, 0);
 
 		value = pc->memory[address];
 	}
@@ -41,14 +36,9 @@ int64_t IntCodePC::Instruction::getValue(int64_t parameter)
 void IntCodePC::Instruction::setValue(int64_t parameter, int64_t value)
 {
 	int64_t pointer = pc->rip + parameter;
-	if (pointer >= (int64_t)pc->memory.size())
-		pc->memory.resize(pointer + 1, 0);
 
 	int64_t param = pc->memory[pointer];
 	int64_t address = (modes[parameter - 1] == 2 ? pc->rbase : 0) + param;
-
-	if (address >= (int64_t)pc->memory.size())
-		pc->memory.resize(address + 1, 0);
 
 	if (modes[parameter - 1] != -1)
 		pc->memory[address] = value;
@@ -90,7 +80,9 @@ void IntCodePC::waitForExit()
 
 void IntCodePC::reload(std::vector<int64_t> ram)
 {
-	memory = ram;
+	memory.clear();
+	for (uint64_t addr = 0; addr < ram.size(); addr++)
+		memory[addr] = ram[addr];
 }
 
 void IntCodePC::reset()
